@@ -1,0 +1,10 @@
+
+dist-newstyle
+
+# ignore my custom backup file format
+.*.*
+
+# ignore vim swapfiles
+*.swp
+*.swo
+
