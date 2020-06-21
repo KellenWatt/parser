@@ -1,7 +1,11 @@
 
 dist-newstyle
 
-# ignore my custom backup file format
+# hspec files
+.hspec
+
+# Pattern for my custom backup file format
+# exceptions need to be added manually
 .*.*
 
 # ignore vim swapfiles
