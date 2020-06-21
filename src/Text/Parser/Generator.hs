@@ -172,5 +172,5 @@ join (Generator _ (Right ast)) (Generator xs (Right ast')) = Generator xs $ Righ
 -- those exctracted from the Generator returned from matching `f` against `xs`.
 parse :: ParseFunc -> [String] -> (Either String AST, [String])
 parse f xs = (tree parsed, tokens parsed)
-    where parsed = xs #> f
+    where parsed = f xs
 
