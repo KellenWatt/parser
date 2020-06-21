@@ -250,10 +250,12 @@ multiUntil' :: ParseFunc -> ParseFunc -> [String] -> [Generator]
 multiUntil' term f xs 
     | eof xs == noneGen [] = [term xs]
     | otherwise = if isLeft done 
-                           then gen : (multiUntil' term f rest) 
+                           then if isLeft ast 
+                                   then [gen]
+                                   else gen : (multiUntil' term f rest) 
                            else []
     where (Generator _ done) = term xs
-          gen@(Generator rest _) = f xs
+          gen@(Generator rest ast) = f xs
 
 -- Same as calling multiUntil with eof as the terminating function
 multi :: ParseFunc -> [String] -> Generator
