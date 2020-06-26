@@ -4,7 +4,10 @@ import Data.Char (generalCategory, isPunctuation, isSpace, isLetter, isAlphaNum,
 import Data.List (groupBy)
 
 -- `Token` represents a type of token.
-newtype Token = Token {tokenName :: String} deriving (Eq, Show)
+newtype Token = Token {tokenName :: String} deriving (Eq)
+
+instance Show Token where
+    show t = "Token \"" ++ tokenName t ++ "\""
 
 -- Maybe move these all to submodule
 
