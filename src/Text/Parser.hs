@@ -290,7 +290,7 @@ upTo' n f xs
     where gen@(Generator rest ast) = f xs
 
 -- `atLeast n f xs` is like count, except it matches `f` at least `n` tokens. 
--- If there a less than `n` valid matches in sequence, atLeast will fail. 
+-- If there are less than `n` valid matches in sequence, atLeast will fail. 
 --
 -- atLeast is greedy, and will consume as many tokens as it can, until it
 -- encounters an invalid token. Be careful, as this could be theoretically 
@@ -310,16 +310,16 @@ atLeast' n f xs
     | otherwise = gen : atLeast' (n-1) f rest
     where gen@(Generator rest ast) = f xs
 
-
+-- `between (l,h) f xs` matches `f` a number times in the range of `[l,f]`.
+-- If there are less than `l` valid matches in sequence, between will fail.
 between :: (Int,Int) -> ParseFunc -> [String] -> Generator
 between (l,h) f xs
     | h < 0 = err "Maximum count provided is less than 0."
     | h < l = err "Maximum count greater than minimum count."
-    | h == l = f xs
     | isLeft ast = mn
     | isLeft ast' = mx
     | otherwise = Generator rest (Right res)
-    where mn@(Generator mid ast) = count l f xs
+    where mn@(Generator mid ast) = count (max l 0) f xs
           fstCh = children $ fromRight None ast
           mx@(Generator rest ast') = upTo (min h (h-l)) f mid
           sndCh = children $ fromRight None ast'
