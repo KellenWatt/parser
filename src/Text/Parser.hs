@@ -76,6 +76,15 @@ matchType t tt (x:xs) = if t == x
 match :: String -> [String] -> Generator
 match t xs = matchType t genericToken xs
 
+notMatchType :: String -> Token -> [String] -> Generator
+notMatchType t _ [] = err $ "End of file found. Expected anything but \"" ++ t  ++ "\"."
+notMatchType t tt (x:xs) = if t /= x
+                              then singleton xs tt x
+                              else err $ "Unexpected \"" ++ t ++ "\" found when looking for anything else."
+
+notMatch :: String -> [String] -> Generator
+notMatch t xs = notMatchType t genericToken xs
+
 -- `matchOf ts tt xs` matches exactly one element of `ts`, taking the first from 
 -- the right. The match has a Token of `tt`.
 matchTypeOf :: [String] -> Token -> [String] -> Generator
@@ -84,7 +93,7 @@ matchTypeOf ts tt (x:xs) = if x `elem` ts
                               then singleton xs tt x
                               else err $ "Unexpected \"" ++ x ++ 
                                          "\" found when looking for one of " ++ 
-                                         show ts ++ "."
+                                         show ts ++ "." 
 
 -- `matchOf ts xs` matches exactly one element of `ts`, taking the first from 
 -- the right. The match has a Token of "token".
@@ -186,6 +195,7 @@ anything (x:xs) = singleton xs genericToken x
 eol :: [String] -> Generator
 eol [] = err "End of file found. Expected line ending."
 eol (x:xs)
+    | "\r" == x && length xs > 0 && "\n" == (head xs) = singleton (drop 1 xs) endOfLineToken "\r\n"
     | "\r\n" == x || "\n" == x = singleton xs endOfLineToken x
     | "\r\n" `isPrefixOf` x = singleton ((drop 2 x):xs) endOfLineToken "\r\n"
     | '\n' == head x = singleton (tail x : xs) endOfLineToken "\n"
