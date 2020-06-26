@@ -606,6 +606,10 @@ main = hspecWith defaultConfig {configFastFail = True} $ do
             describe "count n f xs" $ do
                 it "does not accept negative inputs" $ do
                     count (-1) testParseFunc stream `shouldSatisfy` invalid
+                it "accepts n of 0, returning empty sequence" $ do
+                    let res = count 0 testParseFunc stream
+                    res `shouldSatisfy` valid
+                    tree res `shouldBe` Right (leafAST sequenceToken "")
                 it "fails to match anything less than n" $ do
                     count ((length stream)+1) testParseFunc stream `shouldSatisfy` invalid
                 it "matches exactly n tokens" $ do
@@ -617,6 +621,10 @@ main = hspecWith defaultConfig {configFastFail = True} $ do
             describe "upTo n f xs" $ do
                 it "does not accept negative inputs" $ do
                     upTo (-1) testParseFunc stream `shouldSatisfy` invalid
+                it "accepts n of 0, returning empty sequence" $ do
+                    let res = upTo 0 testParseFunc stream
+                    res `shouldSatisfy` valid
+                    tree res `shouldBe` Right (leafAST sequenceToken "")
                 it "matches less than n elements" $ do
                     let res = upTo ((length stream)+1) testParseFunc stream 
                     res `shouldSatisfy` valid
@@ -643,6 +651,37 @@ main = hspecWith defaultConfig {configFastFail = True} $ do
                 it "fails to match less than n exact tokens" $ do
                     let numStream = ["1","2","3","4","hello"]
                         res = atLeast (length numStream) limitedParseFunc numStream
+                    res `shouldSatisfy` invalid
+
+            describe "between (l,h) f xs" $ do
+                it "accepts negative n" $ do
+                    let res = between (-1,1) testParseFunc stream
+                    res `shouldSatisfy` valid
+                it "accepts h of 0, returning empty sequence" $ do
+                    let res = between (-1,0) testParseFunc stream
+                    tree res `shouldBe` Right (leafAST sequenceToken "")
+                it "accepts l and h being equal" $ do
+                    let n = (length stream) - 1
+                        res = between (n,n) testParseFunc stream
+                    res `shouldSatisfy` valid
+                    (length . children . fromGenerator) res `shouldBe` n
+                it "fails if h is less than 0" $ do
+                    between (-2,-1) testParseFunc stream `shouldSatisfy` invalid
+                it "fails if h is less than l" $ do
+                    between (0,-1) testParseFunc stream `shouldSatisfy` invalid
+                it "matches at most h tokens" $ do
+                    let res = between (0, (length stream)-1) testParseFunc stream
+                    res `shouldSatisfy` valid
+                    (length . tokens) res `shouldBe` 1
+                    (length . children . fromGenerator) res `shouldBe` (length stream) - 1
+
+                it "matches l greater than 0" $ do
+                    let res = between (1, 4) testParseFunc stream
+                    res `shouldSatisfy` valid
+                    (length . children .fromGenerator) res `shouldSatisfy` (>=1)
+                it "fails to match less than l tokens" $ do
+                    let l = (length stream) + 1
+                        res = between (l, l+1) testParseFunc stream
                     res `shouldSatisfy` invalid
 
             describe "before start f xs" $ do
