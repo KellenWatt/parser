@@ -3,7 +3,7 @@ module Text.Parser where
 import Data.Char (isSpace, isDigit)
 import qualified Data.Char as C (isSymbol, isPunctuation)
 import Data.List (isPrefixOf)
-import Data.Either (isLeft)
+import Data.Either (isLeft, fromRight)
 import Control.Applicative (liftA2)
 import Text.Parser.Generator
 import Text.Parser.Token
@@ -302,13 +302,28 @@ atLeast n f xs = foldl join base $ atLeast' n f xs
 atLeast' :: Int -> ParseFunc -> [String] -> [Generator]
 atLeast' n f xs
     | null xs = if n > 0
-                   then [err $ "End of file found. Minimum count not met."]
+                   then [err "End of file found. Minimum count not met."]
                    else [noneGen xs]
     | isLeft ast = if n < 1
                       then [noneGen xs]
                       else [err "Minimum count not met."]
     | otherwise = gen : atLeast' (n-1) f rest
     where gen@(Generator rest ast) = f xs
+
+
+between :: (Int,Int) -> ParseFunc -> [String] -> Generator
+between (l,h) f xs
+    | h < 0 = err "Maximum count provided is less than 0."
+    | h < l = err "Maximum count greater than minimum count."
+    | h == l = f xs
+    | isLeft ast = mn
+    | isLeft ast' = mx
+    | otherwise = Generator rest (Right res)
+    where mn@(Generator mid ast) = count l f xs
+          fstCh = children $ fromRight None ast
+          mx@(Generator rest ast') = upTo (min h (h-l)) f mid
+          sndCh = children $ fromRight None ast'
+          res = AST sequenceToken "" (fstCh ++ sndCh)
 
 
 -- `before start f xs` is the same as `start xs .> f` (in fact, that's how it's 
